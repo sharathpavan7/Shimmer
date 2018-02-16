@@ -61,4 +61,9 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.My
             timestamp = view.findViewById(R.id.timestamp);
         }
     }
+
+    public RecipeListAdapter(Context context, List<Recipe> list) {
+        this.context = context;
+        this.cartList = list;
+    }
 }
