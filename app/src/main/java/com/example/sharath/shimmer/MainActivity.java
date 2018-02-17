@@ -8,11 +8,18 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.facebook.shimmer.ShimmerFrameLayout;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 
@@ -58,7 +65,38 @@ public class MainActivity extends AppCompatActivity {
      * method make volley network call and parses json
      */
     private void fetchRecipes() {
+        JsonArrayRequest request = new JsonArrayRequest(URL, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                if (response == null) {
+                    Toast.makeText(getApplicationContext(), "Couldn't fetch the menu ! Plase try agian.", Toast.LENGTH_SHORT);
+                    return;
+                }
 
+                List<Recipe> recipes = new Gson().fromJson(response.toString(), new TypeToken<List<Recipe>>() {
+                }.getType());
+
+                //adding recipes to cart list
+                cartList.clear();
+                cartList.addAll(recipes);
+
+                //refreshing recycler view
+                recipeListAdapter.notifyDataSetChanged();
+
+                //stop animating Shimmer and hide the layout
+                shimmerFrameLayout.stopShimmerAnimation();
+                shimmerFrameLayout.setVisibility(View.GONE);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //error i getting json
+                Log.e(TAG,"Error : "+error.getMessage());
+                Toast.makeText(getApplicationContext(),"Error : "+error.getMessage(),Toast.LENGTH_SHORT);
+            }
+        });
+
+        MyApplication.getmInstance().addToRequestQueue(request);
     }
 
     @Override
